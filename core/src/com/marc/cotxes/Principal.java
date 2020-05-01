@@ -2,16 +2,14 @@ package com.marc.cotxes;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
-import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
-import com.badlogic.gdx.scenes.scene2d.ui.Skin;
-import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
 import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
 
@@ -36,14 +34,14 @@ public class Principal extends ApplicationAdapter implements Runnable{
 	Texture jugadorTexture;
 	// Sprite con la textura del coche del jugador
 	Sprite jugadorSprite;
-
+	FreeTypeFontGenerator generator;
 
 	@Override
 	public void create () {
 
-		//Texture botonIniciar = new Texture("");
-		//Drawable drawable = new TextureRegionDrawable(new TextureRegion(playTexture);
-		//ImageButton playButton = new ImageButton(drawable);
+		Texture botonIniciar = new Texture("");
+		Drawable drawable = new TextureRegionDrawable(new TextureRegion(jugadorTexture));
+		ImageButton playButton = new ImageButton(drawable);
 
 
 		// GET Dimensions pantalla
@@ -54,6 +52,23 @@ public class Principal extends ApplicationAdapter implements Runnable{
 		startTime = System.currentTimeMillis();
 		// Cronometro
 		chronoFont = new BitmapFont();
+
+
+		// Fuente de mejor calidad
+		generator = new FreeTypeFontGenerator(Gdx.files.internal("pdark.ttf"));
+		FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
+		parameter.size = 60;
+		parameter.shadowColor = Color.BLACK;
+		parameter.shadowOffsetX = 3;
+		parameter.shadowOffsetY = 3;
+		chronoFont = generator.generateFont(parameter); // font size 12 pixels
+
+
+
+
+
+
+
 		// Batch
 		batch = new SpriteBatch();
 
@@ -97,6 +112,7 @@ public class Principal extends ApplicationAdapter implements Runnable{
 
 
 
+
 		batch.begin();
 
 		// Dibuja el fondo
@@ -110,9 +126,8 @@ public class Principal extends ApplicationAdapter implements Runnable{
 		jugadorSprite.draw(batch);
 
 		// Muestra el tiempo transcurrido en segundos por pantalla
-		chronoFont.getData().setScale(4f);
 		chronoFont.setColor(1,1,1,1);
-		chronoFont.draw(batch, "Tiempo: " + currentTime, SCREEN_WIDTH / 2 - 110, SCREEN_HEIGHT - 10);
+		chronoFont.draw(batch, "" + currentTime, SCREEN_WIDTH / 2 - 30, SCREEN_HEIGHT - 75);
 
 		batch.end();
 
@@ -123,6 +138,7 @@ public class Principal extends ApplicationAdapter implements Runnable{
 	public void dispose () {
 		batch.dispose();
 		trozoCarretera.dispose();
+		generator.dispose();
 	}
 
 	@Override
