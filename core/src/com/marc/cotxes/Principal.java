@@ -149,11 +149,11 @@ public class Principal extends ApplicationAdapter implements Runnable, InputProc
 		road_Texture = new Texture("bg.jpg");
 		// Road 1
 		Sprite road1_Sprite = new Sprite(road_Texture);
-		road1_Sprite.setSize(SCREEN_WIDTH + 5, SCREEN_HEIGHT);
+		road1_Sprite.setSize(SCREEN_WIDTH + 10, SCREEN_HEIGHT);
 		road_Sprites.add(road1_Sprite);
 		// Road 2
 		Sprite road2_Sprite = new Sprite(road_Texture);
-		road2_Sprite.setSize(SCREEN_WIDTH + 5, SCREEN_HEIGHT);
+		road2_Sprite.setSize(SCREEN_WIDTH + 10, SCREEN_HEIGHT);
 		road_Sprites.add(road2_Sprite);
 	}
 
@@ -262,12 +262,14 @@ public class Principal extends ApplicationAdapter implements Runnable, InputProc
 
 	@Override
 	public boolean keyDown(int keycode) {
-		return false;
+
+		return true;
 	}
 
 	@Override
 	public boolean keyUp(int keycode) {
-		return false;
+
+		return true;
 	}
 
 	@Override
@@ -315,7 +317,6 @@ public class Principal extends ApplicationAdapter implements Runnable, InputProc
 	// Runnable that moves the player to left or right
 	// Also limits the player max and min position on the Y axis
 	private class PlayerRunnable implements Runnable {
-
 		public void run() {
 			while (true){
 				if (player_moving){
@@ -346,61 +347,63 @@ public class Principal extends ApplicationAdapter implements Runnable, InputProc
 		}
 	}
 
+	// Runnable that moves roads according to speed and Delta Time
 	private static class RoadRunnable implements Runnable {
 		// Speed
-		float speed = 1;
+		float speed = 2;
 		// Prevents increasing the speed more than once in the same second
 		int incrementation_sec = 0;
 		// Roads positions
-		float position = 0, backPosition = -SCREEN_WIDTH - 2;
+		float position = 0, backPosition = -SCREEN_WIDTH - 5;
 		// The two roads
 		Sprite road1 = road_Sprites.get(0);
 		Sprite road2 = road_Sprites.get(1);
 
 
 		public void run(){
+			// Second road position will be before the first one
 			road2.setX(backPosition);
 
 			while (true){
 				manageSpeed();
 				moveRoad(road1);
 				moveRoad(road2);
+				// Thread sleep
+				try{
+					Thread.sleep(1);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
 			}
 		}
 
 		private void moveRoad(Sprite road) {
-			// Si la primera carretera llega al final, vuelve al principio
-			if (road.getX() >= SCREEN_WIDTH + 2){
+			// Once the road reaches the end of the screen -5
+			if (road.getX() >= SCREEN_WIDTH - 5){
+				// Goes back to initial position
 				position = backPosition;
 			}else{
-				// Avanza la carretera
+				// Moves the road to the new position
 				position = road.getX() + speed;
 			}
 			road.setX(position);
-
-			// Retardo
-			try{
-				Thread.sleep(1);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
 		}
 
 		private void manageSpeed() {
-			// Tiempo actual en segundos
+			// Current time in ms
 			if (game_started){
 				currentTime = (System.currentTimeMillis() - startTime) / 1000;
 			}
 			else{
-				// Tiempo inicial en ms
+				// Starting time
 				startTime = System.currentTimeMillis();
 			}
 
-			// Incrementa la velocidad
+			// Speed increasing
 			if (currentTime % 5 == 0){
-				// Evita incrementar la velocidad mas de una vez en el mismo segundo
+				// Prevents from increasing the speed more than once per second
 				if (incrementation_sec != currentTime){
-					speed += 0.01 * Gdx.graphics.getDeltaTime();
+					speed += 10 * Gdx.graphics.getDeltaTime();
 					incrementation_sec = (int) currentTime;
 				}
 			}
