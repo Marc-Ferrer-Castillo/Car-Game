@@ -2,20 +2,26 @@ package com.marc.cotxes;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
-import com.badlogic.gdx.scenes.scene2d.ui.ImageButton;
-import com.badlogic.gdx.scenes.scene2d.utils.Drawable;
-import com.badlogic.gdx.scenes.scene2d.utils.TextureRegionDrawable;
-
 import java.util.ArrayList;
 
-public class Principal extends ApplicationAdapter implements Runnable{
+public class Principal extends ApplicationAdapter implements Runnable, InputProcessor {
+	// Movimiento del jugador a izquierda o derecha
+	private final boolean MOVE_PLAYER_LEFT = true;
+	private final boolean MOVE_PLAYER_RIGHT = false;
+	// Movimiento del jugador
+	private boolean player_moving = false;
+	// Dirección de movimiento
+	private boolean player_moving_direction;
+	// Límites de la carretera
+	private final int LIMITE_DERECHO_CARRETERA = 390;
+	private final int LIMITE_IZQUIERDO_CARRETERA = 150;
 	// Dimensions pantalla
 	private int SCREEN_WIDTH;
 	private int SCREEN_HEIGHT;
@@ -27,23 +33,18 @@ public class Principal extends ApplicationAdapter implements Runnable{
 	private ArrayList<Sprite> carreteras;
 
 
+
 	SpriteBatch batch;
 	Sprite fondo;
 	Texture trozoCarretera;
 	// textura del coche del jugador
 	Texture jugadorTexture;
 	// Sprite con la textura del coche del jugador
-	Sprite jugadorSprite;
+	Sprite player_Sprite;
 	FreeTypeFontGenerator generator;
 
 	@Override
 	public void create () {
-
-		Texture botonIniciar = new Texture("");
-		Drawable drawable = new TextureRegionDrawable(new TextureRegion(jugadorTexture));
-		ImageButton playButton = new ImageButton(drawable);
-
-
 		// GET Dimensions pantalla
 		SCREEN_WIDTH = Gdx.graphics.getWidth();
 		SCREEN_HEIGHT = Gdx.graphics.getHeight();
@@ -54,7 +55,7 @@ public class Principal extends ApplicationAdapter implements Runnable{
 		chronoFont = new BitmapFont();
 
 
-		// Fuente de mejor calidad
+		// Fuente de texto
 		generator = new FreeTypeFontGenerator(Gdx.files.internal("pdark.ttf"));
 		FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
 		parameter.size = 60;
@@ -63,14 +64,11 @@ public class Principal extends ApplicationAdapter implements Runnable{
 		parameter.shadowOffsetY = 3;
 		chronoFont = generator.generateFont(parameter); // font size 12 pixels
 
-
-
-
-
-
-
 		// Batch
 		batch = new SpriteBatch();
+
+		// Aquesta clase rep els events d'entrada de teclat
+		Gdx.input.setInputProcessor(this);
 
 		// Crea las carreteras del juego
 		crearCarreteras();
@@ -78,8 +76,9 @@ public class Principal extends ApplicationAdapter implements Runnable{
 		// Textura con la imagen del coche del jugador
 		jugadorTexture = new Texture("player.png");
 		// Sprite con la textura del coche del jugador
-		jugadorSprite = new Sprite(jugadorTexture);
-		jugadorSprite.setPosition(SCREEN_WIDTH - jugadorSprite.getWidth(), SCREEN_HEIGHT / 2);
+		player_Sprite = new Sprite(jugadorTexture);
+		// Posición inicial del jugador
+		player_Sprite.setPosition(SCREEN_WIDTH - player_Sprite.getWidth(), SCREEN_HEIGHT / 2);
 
 
 
@@ -87,6 +86,10 @@ public class Principal extends ApplicationAdapter implements Runnable{
 		// Inicia el thread para mover las carreteras
 		Thread t = new Thread(this);
 		t.start();
+
+		// Runnable para mover al jugador
+		PlayerRunnable playerRunnable = new PlayerRunnable();
+		new Thread(playerRunnable).start();
 	}
 
 	// Crea las carreteras del juego
@@ -111,9 +114,9 @@ public class Principal extends ApplicationAdapter implements Runnable{
 	public void render () {
 
 
-
-
 		batch.begin();
+
+
 
 		// Dibuja el fondo
 		fondo.draw(batch);
@@ -123,7 +126,7 @@ public class Principal extends ApplicationAdapter implements Runnable{
 		}
 
 		// Dibuja el coche del jugador
-		jugadorSprite.draw(batch);
+		player_Sprite.draw(batch);
 
 		// Muestra el tiempo transcurrido en segundos por pantalla
 		chronoFont.setColor(1,1,1,1);
@@ -195,6 +198,91 @@ public class Principal extends ApplicationAdapter implements Runnable{
 				Thread.sleep(1);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
+			}
+		}
+	}
+
+	@Override
+	public boolean keyDown(int keycode) {
+		return false;
+	}
+
+	@Override
+	public boolean keyUp(int keycode) {
+		return false;
+	}
+
+	@Override
+	public boolean keyTyped(char character) {
+		return false;
+	}
+
+	@Override
+	public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+		player_moving = true;
+
+		// Si se pulsa sobre la parte superior de la pantalla el jugador
+		// se mueve hacia la derecha, sino, hacia la izquierda
+		if (screenY >= SCREEN_HEIGHT / 2){
+			player_moving_direction = MOVE_PLAYER_LEFT;
+		}
+		else{
+			player_moving_direction = MOVE_PLAYER_RIGHT;
+		}
+		return true;
+	}
+
+	@Override
+	public boolean touchUp(int screenX, int screenY, int pointer, int button) {
+		player_moving = false;
+
+		return true;
+	}
+
+	@Override
+	public boolean touchDragged(int screenX, int screenY, int pointer) {
+		return false;
+	}
+
+	@Override
+	public boolean mouseMoved(int screenX, int screenY) {
+		return false;
+	}
+
+	@Override
+	public boolean scrolled(int amount) {
+		return false;
+	}
+
+	// Runnable encargador de mover el jugador hacia derecha o izquierda
+	private class PlayerRunnable implements Runnable {
+
+		public void run() {
+			while (true){
+				if (player_moving){
+					// Movimiento hacia la izquierda
+					if (player_moving_direction == MOVE_PLAYER_LEFT){
+						player_Sprite.setY(player_Sprite.getY() - 1);
+					}
+					// Movimiento hacia la derecha
+					else if(player_moving_direction == MOVE_PLAYER_RIGHT){
+						player_Sprite.setY(player_Sprite.getY() + 1);
+					}
+				}
+				// Si el jugador rebasa por el lado derecho
+				if (player_Sprite.getY() > SCREEN_HEIGHT - LIMITE_DERECHO_CARRETERA){
+					player_Sprite.setY(player_Sprite.getY() - 1);
+				}
+				// Si el jugador rebasa por el lado izquierdo
+				if ( player_Sprite.getY() < LIMITE_IZQUIERDO_CARRETERA){
+					player_Sprite.setY(player_Sprite.getY() + 1);
+				}
+				// Retardo
+				try{
+					Thread.sleep(1);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
 			}
 		}
 	}
