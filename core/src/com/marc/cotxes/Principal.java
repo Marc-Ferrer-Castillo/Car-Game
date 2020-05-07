@@ -37,6 +37,11 @@ public class Principal extends ApplicationAdapter implements Runnable, InputProc
 	private static long currentTime;
 	// Chronometer
 	private BitmapFont chronoFont;
+	// Game Speed
+	private static float speed = 2;
+	// Prevents increasing the speed more than once in the same second
+	int incrementation_sec = 0;
+
 
 
 
@@ -48,8 +53,10 @@ public class Principal extends ApplicationAdapter implements Runnable, InputProc
 	private ArrayList<Sprite> IA_Sprites;
 	// Textures
 	private Texture road_Texture, player_Texture, instructions_Texture;
-	private ArrayList<Texture> IA_Textures;
+	private ArrayList<Texture> AI_Textures;
 	private FreeTypeFontGenerator generator;
+
+	RoadRunnable roadRunnable;
 
 	@Override
 	public void create () {
@@ -80,9 +87,13 @@ public class Principal extends ApplicationAdapter implements Runnable, InputProc
 		// Creates the IA cars
 		createIA();
 
+
 		// Starts roads movement
-		RoadRunnable roadRunnable = new RoadRunnable();
+		roadRunnable = new RoadRunnable();
 		new Thread(roadRunnable).start();
+
+		// Starts time thread
+		new Thread(this).start();
 
 		// Starts player movement
 		PlayerRunnable playerRunnable = new PlayerRunnable();
@@ -93,18 +104,18 @@ public class Principal extends ApplicationAdapter implements Runnable, InputProc
 	// Creates the IA cars
 	private void createIA() {
 		// Vehicle textures
-		IA_Textures = new ArrayList<>();
-		IA_Textures.add(new Texture("Ambulance.png"));
-		IA_Textures.add(new Texture("Audi.png"));
-		IA_Textures.add(new Texture("Car.png"));
-		IA_Textures.add(new Texture("Mini_truck.png"));
-		IA_Textures.add(new Texture("taxi.png"));
-		IA_Textures.add(new Texture("truck.png"));
-		IA_Textures.add(new Texture("van.png"));
+		AI_Textures = new ArrayList<>();
+		AI_Textures.add(new Texture("Ambulance.png"));
+		AI_Textures.add(new Texture("Audi.png"));
+		AI_Textures.add(new Texture("Car.png"));
+		AI_Textures.add(new Texture("Mini_truck.png"));
+		AI_Textures.add(new Texture("taxi.png"));
+		AI_Textures.add(new Texture("truck.png"));
+		AI_Textures.add(new Texture("van.png"));
 
 		// Vehicle Sprites
 		IA_Sprites = new ArrayList<>();
-		for (Texture texture: IA_Textures) {
+		for (Texture texture: AI_Textures) {
 			Sprite sprite = new Sprite(texture);
 			sprite.setPosition(-SCREEN_WIDTH, SCREEN_CENTER);
 			IA_Sprites.add(sprite);
@@ -156,6 +167,26 @@ public class Principal extends ApplicationAdapter implements Runnable, InputProc
 		road2_Sprite.setSize(SCREEN_WIDTH + 10, SCREEN_HEIGHT);
 		road_Sprites.add(road2_Sprite);
 	}
+	// Increases game speed over time
+	private void manageSpeed() {
+		// Current time in ms
+		if (game_started){
+			currentTime = (System.currentTimeMillis() - startTime) / 1000;
+		}
+		else{
+			// Starting time
+			startTime = System.currentTimeMillis();
+		}
+
+		// Speed increasing
+		if (currentTime % 5 == 0){
+			// Prevents from increasing the speed more than once per second
+			if (incrementation_sec != currentTime){
+				speed += 10 * Gdx.graphics.getDeltaTime();
+				incrementation_sec = (int) currentTime;
+			}
+		}
+	}
 
 	@Override
 	public void render () {
@@ -183,6 +214,7 @@ public class Principal extends ApplicationAdapter implements Runnable, InputProc
 
 		// Renders the chrono
 		chronoFont.setColor(1,1,1,1);
+		//chronoFont.draw(batch, "" + currentTime, SCREEN_WIDTH / 2f - 30, SCREEN_HEIGHT - 75);
 		chronoFont.draw(batch, "" + currentTime, SCREEN_WIDTH / 2f - 30, SCREEN_HEIGHT - 75);
 
 		batch.end();
@@ -197,67 +229,9 @@ public class Principal extends ApplicationAdapter implements Runnable, InputProc
 
 	@Override
 	public void run() {
-		/*// The two roads
-		Sprite road1 = road_Sprites.get(0);
-		Sprite road2 = road_Sprites.get(1);
-
-		// Speed
-		float speed = 1;
-		// Prevents from increasing the speed more than once in the same second
-		int puntoDeIncremento = 0;
-
-		// Second road position
-		road2.setX(-SCREEN_WIDTH );
-
-
-		float posicionC1 = 0, posicionC2 = 0;
-
-		while (true){
-			// Tiempo actual en segundos
-			if (game_started){
-				currentTime = (System.currentTimeMillis() - startTime) / 1000;
-			}
-			else{
-				// Tiempo inicial en ms
-				startTime = System.currentTimeMillis();
-			}
-
-
-			// Incrementa la velocidad
-			if (currentTime % 5 == 0){
-				// Evita incrementar la velocidad mas de una vez en el mismo segundo
-				if (puntoDeIncremento != currentTime){
-					speed += 0.1;
-					puntoDeIncremento = (int) currentTime;
-				}
-			}
-
-
-			// Si la primera carretera llega al final, vuelve al principio
-			if (road1.getX() >= SCREEN_WIDTH){
-				posicionC1 = -SCREEN_WIDTH;
-			}else{
-				// Avanza la carretera
-				posicionC1 = road1.getX() + speed;
-			}
-			road1.setX(posicionC1);
-
-			// Si la segunda carretera llega al final, vuelve al principio
-			if (road2.getX() >= SCREEN_WIDTH){
-				posicionC2 = -SCREEN_WIDTH;
-			}else{
-				// Avanza la carretera
-				posicionC2 = road2.getX() + speed;
-			}
-			road2.setX(posicionC2);
-
-			// Retardo
-			try{
-				Thread.sleep(1);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		}*/
+		while(true){
+			manageSpeed();
+		}
 	}
 
 	@Override
@@ -349,10 +323,6 @@ public class Principal extends ApplicationAdapter implements Runnable, InputProc
 
 	// Runnable that moves roads according to speed and Delta Time
 	private static class RoadRunnable implements Runnable {
-		// Speed
-		float speed = 2;
-		// Prevents increasing the speed more than once in the same second
-		int incrementation_sec = 0;
 		// Roads positions
 		float position = 0, backPosition = -SCREEN_WIDTH - 5;
 		// The two roads
@@ -365,7 +335,6 @@ public class Principal extends ApplicationAdapter implements Runnable, InputProc
 			road2.setX(backPosition);
 
 			while (true){
-				manageSpeed();
 				moveRoad(road1);
 				moveRoad(road2);
 				// Thread sleep
@@ -387,26 +356,6 @@ public class Principal extends ApplicationAdapter implements Runnable, InputProc
 				position = road.getX() + speed;
 			}
 			road.setX(position);
-		}
-
-		private void manageSpeed() {
-			// Current time in ms
-			if (game_started){
-				currentTime = (System.currentTimeMillis() - startTime) / 1000;
-			}
-			else{
-				// Starting time
-				startTime = System.currentTimeMillis();
-			}
-
-			// Speed increasing
-			if (currentTime % 5 == 0){
-				// Prevents from increasing the speed more than once per second
-				if (incrementation_sec != currentTime){
-					speed += 10 * Gdx.graphics.getDeltaTime();
-					incrementation_sec = (int) currentTime;
-				}
-			}
 		}
 	}
 }
