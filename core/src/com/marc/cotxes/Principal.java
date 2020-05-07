@@ -89,7 +89,7 @@ public class Principal extends ApplicationAdapter implements Runnable, InputProc
 
 
 		// Starts roads movement
-		roadRunnable = new RoadRunnable();
+		roadRunnable = new RoadRunnable(SCREEN_WIDTH, road_Sprites.get(0), road_Sprites.get(1));
 		new Thread(roadRunnable).start();
 
 		// Starts time thread
@@ -184,6 +184,7 @@ public class Principal extends ApplicationAdapter implements Runnable, InputProc
 			if (incrementation_sec != currentTime){
 				speed += 10 * Gdx.graphics.getDeltaTime();
 				incrementation_sec = (int) currentTime;
+				RoadRunnable.setSpeed(speed);
 			}
 		}
 	}
@@ -294,49 +295,23 @@ public class Principal extends ApplicationAdapter implements Runnable, InputProc
 		public void run() {
 			while (true){
 				if (player_moving){
-					// Movimiento hacia la izquierda
+					// Left movement
 					if (player_moving_direction == MOVE_PLAYER_LEFT){
 						player_Sprite.setY(player_Sprite.getY() - 1);
 					}
-					// Movimiento hacia la derecha
+					// Right movement
 					else if(player_moving_direction == MOVE_PLAYER_RIGHT){
 						player_Sprite.setY(player_Sprite.getY() + 1);
 					}
 				}
-				// Si el jugador rebasa por el lado derecho
+				// If the player reaches max right side
 				if (player_Sprite.getY() > SCREEN_HEIGHT - RIGHT_LIMIT){
 					player_Sprite.setY(player_Sprite.getY() - 1);
 				}
-				// Si el jugador rebasa por el lado izquierdo
+				// If the player reaches max left side
 				if ( player_Sprite.getY() < LEFT_LIMIT){
 					player_Sprite.setY(player_Sprite.getY() + 1);
 				}
-				// Retardo
-				try{
-					Thread.sleep(1);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-	}
-
-	// Runnable that moves roads according to speed and Delta Time
-	private static class RoadRunnable implements Runnable {
-		// Roads positions
-		float position = 0, backPosition = -SCREEN_WIDTH - 5;
-		// The two roads
-		Sprite road1 = road_Sprites.get(0);
-		Sprite road2 = road_Sprites.get(1);
-
-
-		public void run(){
-			// Second road position will be before the first one
-			road2.setX(backPosition);
-
-			while (true){
-				moveRoad(road1);
-				moveRoad(road2);
 				// Thread sleep
 				try{
 					Thread.sleep(1);
@@ -345,18 +320,8 @@ public class Principal extends ApplicationAdapter implements Runnable, InputProc
 				}
 			}
 		}
-
-		private void moveRoad(Sprite road) {
-			// Once the road reaches the end of the screen -5
-			if (road.getX() >= SCREEN_WIDTH - 5){
-				// Goes back to initial position
-				position = backPosition;
-			}else{
-				// Moves the road to the new position
-				position = road.getX() + speed;
-			}
-			road.setX(position);
-		}
 	}
+
+
 }
 
