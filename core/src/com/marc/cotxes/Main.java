@@ -11,52 +11,53 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import java.util.ArrayList;
+import java.util.Random;
 
-public class Principal extends ApplicationAdapter implements Runnable, InputProcessor {
+public class Main extends ApplicationAdapter implements Runnable, InputProcessor {
 	// PLAYER MOVEMENT
 	private final boolean MOVE_PLAYER_LEFT = true;
 	private final boolean MOVE_PLAYER_RIGHT = false;
-	// ROAD LIMITS THAT PLAYER CAN'T SURPASS
-	private final int RIGHT_LIMIT = 390;
-	private final int LEFT_LIMIT = 150;
 	// SCREEN DIMENSIONS
-	private static int SCREEN_WIDTH;
-	private int SCREEN_HEIGHT;
+	public static int SCREEN_WIDTH;
+	public static int SCREEN_HEIGHT;
 	private int SCREEN_CENTER;
 
 
 
 	// Game started?
 	private static boolean game_started = false;
-	// Player moving?
-	private boolean player_moving = false;
-	// Player moving left or right
-	private boolean player_moving_direction;
 	// Start time and current time in ms
 	private static long startTime;
 	private static long currentTime;
 	// Chronometer
 	private BitmapFont chronoFont;
 	// Game Speed
-	private static float speed = 2;
-	// Prevents increasing the speed more than once in the same second
-	int incrementation_sec = 0;
-
+	private static float speed = 0.5f;
+	// Prevents from increasing the speed more than once in the same second
+	private int incrementation_sec = 0;
+	// Prevents from launching AI more than once in the same second
+	private int launching_sec = 0;
 
 
 
 	// SpriteBatch
-	SpriteBatch batch;
+	private SpriteBatch batch;
 	// Sprites
 	private Sprite player_Sprite, instructions_Sprite;
 	private static ArrayList<Sprite> road_Sprites;
-	private ArrayList<Sprite> IA_Sprites;
+	private ArrayList<Sprite> AI_Sprites;
 	// Textures
-	private Texture road_Texture, player_Texture, instructions_Texture;
-	private ArrayList<Texture> AI_Textures;
+	private Texture road_Texture;
 	private FreeTypeFontGenerator generator;
 
-	RoadRunnable roadRunnable;
+
+
+	// Runnables
+	private RoadRunnable roadRunnable;
+	private PlayerRunnable playerRunnable;
+
+
+
 
 	@Override
 	public void create () {
@@ -64,7 +65,6 @@ public class Principal extends ApplicationAdapter implements Runnable, InputProc
 		SCREEN_WIDTH = Gdx.graphics.getWidth();
 		SCREEN_HEIGHT = Gdx.graphics.getHeight();
 		SCREEN_CENTER = SCREEN_HEIGHT / 2;
-
 
 		// SpriteBatch
 		batch = new SpriteBatch();
@@ -74,29 +74,25 @@ public class Principal extends ApplicationAdapter implements Runnable, InputProc
 
 		// Creates the roads
 		createRoads();
-
 		// Creates the chrono
 		createChrono();
-
 		// Creates the player's car
 		createPlayer();
-
 		// Creates the instructions
 		createInstructions();
-
 		// Creates the IA cars
 		createIA();
 
 
 		// Starts roads movement
-		roadRunnable = new RoadRunnable(SCREEN_WIDTH, road_Sprites.get(0), road_Sprites.get(1));
+		roadRunnable = new RoadRunnable(road_Sprites.get(0), road_Sprites.get(1));
 		new Thread(roadRunnable).start();
 
 		// Starts time thread
 		new Thread(this).start();
 
 		// Starts player movement
-		PlayerRunnable playerRunnable = new PlayerRunnable();
+		playerRunnable = new PlayerRunnable(SCREEN_HEIGHT, player_Sprite);
 		new Thread(playerRunnable).start();
 	}
 
@@ -104,7 +100,7 @@ public class Principal extends ApplicationAdapter implements Runnable, InputProc
 	// Creates the IA cars
 	private void createIA() {
 		// Vehicle textures
-		AI_Textures = new ArrayList<>();
+		ArrayList<Texture> AI_Textures = new ArrayList<>();
 		AI_Textures.add(new Texture("Ambulance.png"));
 		AI_Textures.add(new Texture("Audi.png"));
 		AI_Textures.add(new Texture("Car.png"));
@@ -114,11 +110,11 @@ public class Principal extends ApplicationAdapter implements Runnable, InputProc
 		AI_Textures.add(new Texture("van.png"));
 
 		// Vehicle Sprites
-		IA_Sprites = new ArrayList<>();
+		AI_Sprites = new ArrayList<>();
 		for (Texture texture: AI_Textures) {
 			Sprite sprite = new Sprite(texture);
-			sprite.setPosition(-SCREEN_WIDTH, SCREEN_CENTER);
-			IA_Sprites.add(sprite);
+			sprite.setPosition(-sprite.getWidth(), SCREEN_CENTER);
+			AI_Sprites.add(sprite);
 		}
 	}
 	// Creates the chrono
@@ -137,7 +133,7 @@ public class Principal extends ApplicationAdapter implements Runnable, InputProc
 	// Creates the instructions
 	private void createInstructions() {
 		// Textura con la imagen
-		instructions_Texture = new Texture("instrucciones.png");
+		Texture instructions_Texture = new Texture("instrucciones.png");
 		// Sprite con la textura del coche del jugador
 		instructions_Sprite = new Sprite(instructions_Texture);
 		// Posición
@@ -146,7 +142,7 @@ public class Principal extends ApplicationAdapter implements Runnable, InputProc
 	// Creates the player's car
 	private void createPlayer() {
 		// Textura con la imagen del coche del jugador
-		player_Texture = new Texture("player.png");
+		Texture player_Texture = new Texture("player.png");
 		// Sprite con la textura del coche del jugador
 		player_Sprite = new Sprite(player_Texture);
 		// Posición inicial del jugador
@@ -179,14 +175,18 @@ public class Principal extends ApplicationAdapter implements Runnable, InputProc
 		}
 
 		// Speed increasing
-		if (currentTime % 5 == 0){
+		if (currentTime % 10 == 0){
 			// Prevents from increasing the speed more than once per second
 			if (incrementation_sec != currentTime){
-				speed += 10 * Gdx.graphics.getDeltaTime();
+				speed += 0.1;
 				incrementation_sec = (int) currentTime;
-				RoadRunnable.setSpeed(speed);
 			}
 		}
+	}
+
+	// Speed Getter
+	public static float getSpeed() {
+		return speed;
 	}
 
 	@Override
@@ -208,14 +208,13 @@ public class Principal extends ApplicationAdapter implements Runnable, InputProc
 		}
 		else{
 			// Renders IA vehicles
-			for (Sprite vehicle: IA_Sprites) {
+			for (Sprite vehicle: AI_Sprites) {
 				vehicle.draw(batch);
 			}
 		}
 
 		// Renders the chrono
 		chronoFont.setColor(1,1,1,1);
-		//chronoFont.draw(batch, "" + currentTime, SCREEN_WIDTH / 2f - 30, SCREEN_HEIGHT - 75);
 		chronoFont.draw(batch, "" + currentTime, SCREEN_WIDTH / 2f - 30, SCREEN_HEIGHT - 75);
 
 		batch.end();
@@ -231,8 +230,33 @@ public class Principal extends ApplicationAdapter implements Runnable, InputProc
 	@Override
 	public void run() {
 		while(true){
+			// Updates speed over time
 			manageSpeed();
+			// Updates road speed
+			roadRunnable.setSpeed(speed);
+			// AI launcher
+			if (game_started) {
+				// Launching AI
+				if (currentTime % 2 == 0 | currentTime % 3 == 0){
+					// Prevents from launching AI more than once in the same second
+					if (launching_sec != currentTime){
+						launchAI();
+						launching_sec = (int) currentTime;
+					}
+				}
+			}
 		}
+	}
+	// Launches an AI with a random sprite from the arraylist
+	private void launchAI() {
+		int random = new Random().nextInt(AI_Sprites.size());
+
+		// Prevents spawning a sprite that is currently being used
+		while(AI_Sprites.get(random).getX() > 0){
+			random = new Random().nextInt(AI_Sprites.size());
+		}
+
+		new AIRunnable(AI_Sprites.get(random));
 	}
 
 	@Override
@@ -255,22 +279,21 @@ public class Principal extends ApplicationAdapter implements Runnable, InputProc
 	@Override
 	public boolean touchDown(int screenX, int screenY, int pointer, int button) {
 		game_started = true;
-		player_moving = true;
+		playerRunnable.setPlayer_moving(true);
 
 		// Touching over upper half screen moves player to the right
 		if (screenY >= SCREEN_CENTER){
-			player_moving_direction = MOVE_PLAYER_LEFT;
+			playerRunnable.setPlayer_moving_direction(MOVE_PLAYER_LEFT);
 		}
 		else{
-			player_moving_direction = MOVE_PLAYER_RIGHT;
+			playerRunnable.setPlayer_moving_direction(MOVE_PLAYER_RIGHT);
 		}
 		return true;
 	}
 
 	@Override
 	public boolean touchUp(int screenX, int screenY, int pointer, int button) {
-		player_moving = false;
-
+		playerRunnable.setPlayer_moving(false);
 		return true;
 	}
 
@@ -288,40 +311,6 @@ public class Principal extends ApplicationAdapter implements Runnable, InputProc
 	public boolean scrolled(int amount) {
 		return false;
 	}
-
-	// Runnable that moves the player to left or right
-	// Also limits the player max and min position on the Y axis
-	private class PlayerRunnable implements Runnable {
-		public void run() {
-			while (true){
-				if (player_moving){
-					// Left movement
-					if (player_moving_direction == MOVE_PLAYER_LEFT){
-						player_Sprite.setY(player_Sprite.getY() - 1);
-					}
-					// Right movement
-					else if(player_moving_direction == MOVE_PLAYER_RIGHT){
-						player_Sprite.setY(player_Sprite.getY() + 1);
-					}
-				}
-				// If the player reaches max right side
-				if (player_Sprite.getY() > SCREEN_HEIGHT - RIGHT_LIMIT){
-					player_Sprite.setY(player_Sprite.getY() - 1);
-				}
-				// If the player reaches max left side
-				if ( player_Sprite.getY() < LEFT_LIMIT){
-					player_Sprite.setY(player_Sprite.getY() + 1);
-				}
-				// Thread sleep
-				try{
-					Thread.sleep(1);
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-	}
-
 
 }
 

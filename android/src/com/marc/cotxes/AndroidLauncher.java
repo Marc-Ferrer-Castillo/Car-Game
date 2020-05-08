@@ -4,7 +4,6 @@ import android.os.Bundle;
 
 import com.badlogic.gdx.backends.android.AndroidApplication;
 import com.badlogic.gdx.backends.android.AndroidApplicationConfiguration;
-import com.marc.cotxes.Principal;
 
 public class AndroidLauncher extends AndroidApplication {
 	@Override
@@ -13,6 +12,6 @@ public class AndroidLauncher extends AndroidApplication {
 		AndroidApplicationConfiguration config = new AndroidApplicationConfiguration();
 		// Pantalla completa
 		config.useImmersiveMode = true;
-		initialize(new Principal(), config);
+		initialize(new Main(), config);
 	}
 }

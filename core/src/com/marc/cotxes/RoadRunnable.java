@@ -5,25 +5,24 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
 // Runnable that moves roads according to speed and Delta Time
 public class RoadRunnable implements Runnable {
     // SCREEN DIMENSIONS
-    private static int SCREEN_WIDTH;
+    private int SCREEN_WIDTH = Main.SCREEN_WIDTH;
 
     // Game Speed
-    private static float speed = 2;
+    private float speed;
     private float backPosition;
     // The two roads
     private Sprite road1;
     private Sprite road2;
 
 
-    RoadRunnable(int screen_width, Sprite road1, Sprite road2) {
-        SCREEN_WIDTH = screen_width;
+    RoadRunnable(Sprite road1, Sprite road2) {
         this.road1 = road1;
         this.road2 = road2;
         backPosition = -SCREEN_WIDTH - 5;
     }
 
-    public static void setSpeed(float speed) {
-        RoadRunnable.speed = speed;
+    public void setSpeed(float speed) {
+        this.speed = speed;
     }
 
     public void run(){
