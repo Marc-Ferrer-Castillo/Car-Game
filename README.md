@@ -8,7 +8,7 @@ May 2020
 ## Authors
 * [Marc Ferrer Castillo](https://github.com/Marc-Ferrer-Castillo/)
 
-![Icon Image](https://github.com/Marc-Ferrer-Castillo/Car-Game/blob/master/android/assets/logo.png)
+![Icon Image](https://github.com/Marc-Ferrer-Castillo/Car-Game/blob/master/android/assets/logoLow.png)
 
 ## Built With
 
