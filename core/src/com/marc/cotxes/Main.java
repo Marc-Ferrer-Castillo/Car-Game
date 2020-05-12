@@ -18,12 +18,12 @@ public class Main extends ApplicationAdapter implements Runnable, InputProcessor
 	// When its true, the score is shown
 	private static boolean game_Finished = false;
 	// PLAYER MOVEMENT
-	private final boolean MOVE_PLAYER_LEFT = true;
-	private final boolean MOVE_PLAYER_RIGHT = false;
+	private final boolean MOVE_PLAYER_LEFT = false;
+	private final boolean MOVE_PLAYER_RIGHT = true;
 	// SCREEN DIMENSIONS
 	static int SCREEN_WIDTH;
 	static int SCREEN_HEIGHT;
-	private int SCREEN_CENTER;
+	private int SCREEN_CENTER_Y, SCREEN_CENTER_X;
 
 
 
@@ -42,6 +42,8 @@ public class Main extends ApplicationAdapter implements Runnable, InputProcessor
 	private int incrementation_sec = 0;
 	// Prevents from launching AI more than once in the same second
 	private int launching_sec = 0;
+	// Prevents from changing the light more than once in the same second
+	private long changingTime = 0;
 	// Player points to calculate the final score
 	private static int points = 0;
 
@@ -55,7 +57,7 @@ public class Main extends ApplicationAdapter implements Runnable, InputProcessor
 	private ArrayList<Sprite> AI_Sprites;
 	private static ArrayList<Sprite> heart_Sprites;
 	// Textures
-	private Texture road_Texture;
+	private Texture dayRoad_Texture,  nighRoad_Texture;
 	private FreeTypeFontGenerator generator;
 
 
@@ -81,7 +83,8 @@ public class Main extends ApplicationAdapter implements Runnable, InputProcessor
 		// Screen size
 		SCREEN_WIDTH = Gdx.graphics.getWidth();
 		SCREEN_HEIGHT = Gdx.graphics.getHeight();
-		SCREEN_CENTER = SCREEN_HEIGHT / 2;
+		SCREEN_CENTER_Y = SCREEN_HEIGHT / 2;
+		SCREEN_CENTER_X = SCREEN_WIDTH / 2;
 
 		// SpriteBatch
 		batch = new SpriteBatch();
@@ -98,7 +101,7 @@ public class Main extends ApplicationAdapter implements Runnable, InputProcessor
 		// Creates the instructions
 		createInstructions();
 		// Creates the IA cars
-		createIA();
+		createAI();
 		// Creats hearts that represent players lives
 		createHearts();
 		// Creates the score text
@@ -116,12 +119,13 @@ public class Main extends ApplicationAdapter implements Runnable, InputProcessor
 		// Adds as many sprites as player lives
 		for (int i = 0; i < PlayerRunnable.getLives() ; i++){
 			Sprite heart = new Sprite(heart_Texture);
+			heart.rotate90(true);
 			heart.setSize(50, 50);
 			heart_Sprites.add(heart);
 		}
 	}
-	// Creates the IA cars
-	private void createIA() {
+	// Creates the AI cars
+	private void createAI() {
 		// Vehicle textures
 		ArrayList<Texture> AI_Textures = new ArrayList<>();
 		AI_Textures.add(new Texture("Ambulance.png"));
@@ -136,7 +140,7 @@ public class Main extends ApplicationAdapter implements Runnable, InputProcessor
 		AI_Sprites = new ArrayList<>();
 		for (Texture texture: AI_Textures) {
 			Sprite sprite = new Sprite(texture);
-			sprite.setPosition(-sprite.getWidth(), SCREEN_CENTER);
+			sprite.setY(SCREEN_HEIGHT);
 			AI_Sprites.add(sprite);
 		}
 	}
@@ -147,7 +151,7 @@ public class Main extends ApplicationAdapter implements Runnable, InputProcessor
 		// Parameters
 		generator = new FreeTypeFontGenerator(Gdx.files.internal("pdark.ttf"));
 		FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
-		parameter.size = 40;
+		parameter.size = 55;
 		parameter.shadowColor = Color.BLACK;
 		parameter.shadowOffsetX = 3;
 		parameter.shadowOffsetY = 3;
@@ -160,10 +164,10 @@ public class Main extends ApplicationAdapter implements Runnable, InputProcessor
 		// Parameters
 		generator = new FreeTypeFontGenerator(Gdx.files.internal("pdark.ttf"));
 		FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
-		parameter.size = 150;
+		parameter.size = 100;
 		parameter.shadowColor = Color.BLACK;
-		parameter.shadowOffsetX = 3;
-		parameter.shadowOffsetY = 3;
+		parameter.shadowOffsetX = 6;
+		parameter.shadowOffsetY = 6;
 		score_Font = generator.generateFont(parameter);
 	}
 	// Creates the instructions
@@ -182,24 +186,26 @@ public class Main extends ApplicationAdapter implements Runnable, InputProcessor
 		// Sprite
 		player_Sprite = new Sprite(player_Texture);
 		// Initial position
-		player_Sprite.setPosition(SCREEN_WIDTH - player_Sprite.getWidth() - (SCREEN_WIDTH/11f), SCREEN_CENTER);
+		player_Sprite.setPosition(SCREEN_CENTER_X, player_Sprite.getHeight() + (SCREEN_HEIGHT/20f));
 		// Starts player movement
-		playerRunnable = new PlayerRunnable(SCREEN_HEIGHT, player_Sprite);
+		playerRunnable = new PlayerRunnable(player_Sprite);
 		new Thread(playerRunnable).start();
 	}
 	// Creates the roads
 	private void createRoads() {
 		// ArrayList of road_Sprites
 		road_Sprites = new ArrayList<>();
-		// Roads texture
-		road_Texture = new Texture("bg.jpg");
+		// Roads textures
+		dayRoad_Texture = new Texture("background.jpg");
+		nighRoad_Texture = new Texture("backgroundNight.jpg");
+
 		// Road 1
-		Sprite road1_Sprite = new Sprite(road_Texture);
-		road1_Sprite.setSize(SCREEN_WIDTH + 10, SCREEN_HEIGHT);
+		Sprite road1_Sprite = new Sprite(dayRoad_Texture);
+		road1_Sprite.setSize(SCREEN_WIDTH, SCREEN_HEIGHT + SCREEN_HEIGHT / 5f);
 		road_Sprites.add(road1_Sprite);
 		// Road 2
-		Sprite road2_Sprite = new Sprite(road_Texture);
-		road2_Sprite.setSize(SCREEN_WIDTH + 10, SCREEN_HEIGHT);
+		Sprite road2_Sprite = new Sprite(dayRoad_Texture);
+		road2_Sprite.setSize(SCREEN_WIDTH, SCREEN_HEIGHT + SCREEN_HEIGHT / 5f);
 		road_Sprites.add(road2_Sprite);
 
 		// Starts roads movement
@@ -225,6 +231,8 @@ public class Main extends ApplicationAdapter implements Runnable, InputProcessor
 			startTime = System.currentTimeMillis();
 		}
 	}
+
+
 
 
 
@@ -273,16 +281,18 @@ public class Main extends ApplicationAdapter implements Runnable, InputProcessor
 		if (game_started & !game_Finished){
 			// Renders the chrono
 			chronoFont.setColor(1,1,1,1);
-			chronoFont.draw(batch, "" + currentTime, player_Sprite.getX() + player_Sprite.getWidth() / 2, player_Sprite.getY() + player_Sprite.getHeight() + 30);
+			chronoFont.draw(batch, "" + currentTime, SCREEN_WIDTH /5f + SCREEN_WIDTH / 5f, SCREEN_HEIGHT / 20f);
 		}
 	}
 
 	private void renderHearts() {
-		int newPosition = 100;
-		for (int i = 0; i < PlayerRunnable.getLives() ; i++) {
-			heart_Sprites.get(i).setPosition(SCREEN_WIDTH -100, SCREEN_CENTER + newPosition);
-			heart_Sprites.get(i).draw(batch);
-			newPosition += 50;
+		if (game_started & !game_Finished) {
+			int newPosition = (int) SCREEN_CENTER_X + SCREEN_WIDTH / 39;
+			for (int i = 0; i < PlayerRunnable.getLives(); i++) {
+				heart_Sprites.get(i).setPosition(newPosition, SCREEN_HEIGHT / 40f);
+				heart_Sprites.get(i).draw(batch);
+				newPosition += SCREEN_WIDTH / 30;
+			}
 		}
 	}
 
@@ -290,15 +300,20 @@ public class Main extends ApplicationAdapter implements Runnable, InputProcessor
 		if (game_Finished){
 			// Renders the score
 			score_Font.setColor(1,1,1,1);
-			score_Font.draw(batch, "SCORE\n" + points + currentTime, SCREEN_CENTER, SCREEN_HEIGHT / 2f + SCREEN_HEIGHT /22f + SCREEN_HEIGHT / 15f);
+			score_Font.draw(batch, "SCORE\n" + points + currentTime, SCREEN_CENTER_X - SCREEN_WIDTH / 6f, SCREEN_CENTER_Y + SCREEN_HEIGHT / 10f );
 		}
 	}
 	@Override
 	public void dispose () {
 		batch.dispose();
-		road_Texture.dispose();
+		dayRoad_Texture.dispose();
 		generator.dispose();
 	}
+
+
+
+
+
 
 	@Override
 	public void run() {
@@ -309,6 +324,23 @@ public class Main extends ApplicationAdapter implements Runnable, InputProcessor
 			roadRunnable.setSpeed(speed);
 			// AI launcher
 			launchAI();
+			// Changes textures sometimes faking day and night
+			changeLights();
+		}
+	}
+
+	private void changeLights() {
+		if (currentTime % 2 == 0 & changingTime != currentTime){
+
+			for (Sprite road: road_Sprites) {
+				if (road.getTexture().equals(dayRoad_Texture)){
+					road.setTexture(nighRoad_Texture);
+				}
+				else{
+					road.setTexture(dayRoad_Texture);
+				}
+			}
+			changingTime = currentTime;
 		}
 	}
 
@@ -322,7 +354,7 @@ public class Main extends ApplicationAdapter implements Runnable, InputProcessor
 			playerRunnable.setPlayer_moving(false);
 			speed = MINIMUM_SPEED;
 			// Starts player movement
-			playerRunnable = new PlayerRunnable(SCREEN_HEIGHT, player_Sprite);
+			playerRunnable = new PlayerRunnable(player_Sprite);
 			playerRunnable.restartLives();
 			PlayerRunnable.setPlayer_Alive(true);
 			new Thread(playerRunnable).start();
@@ -340,7 +372,7 @@ public class Main extends ApplicationAdapter implements Runnable, InputProcessor
 					int random = new Random().nextInt(AI_Sprites.size());
 
 					// Prevents spawning a sprite that is currently being used
-					while(AI_Sprites.get(random).getX() > 0){
+					while(AI_Sprites.get(random).getY() < SCREEN_HEIGHT){
 						random = new Random().nextInt(AI_Sprites.size());
 					}
 					// Starts a thread that moves the sprite
@@ -381,12 +413,12 @@ public class Main extends ApplicationAdapter implements Runnable, InputProcessor
 		game_started = true;
 		playerRunnable.setPlayer_moving(true);
 
-		// Touching over upper half screen moves player to the right
-		if (screenY >= SCREEN_CENTER){
-			playerRunnable.setPlayer_moving_direction(MOVE_PLAYER_LEFT);
+		// Touching over the right half screen moves player to the right
+		if (screenX >= SCREEN_CENTER_X){
+			playerRunnable.setPlayer_moving_direction(MOVE_PLAYER_RIGHT);
 		}
 		else{
-			playerRunnable.setPlayer_moving_direction(MOVE_PLAYER_RIGHT);
+			playerRunnable.setPlayer_moving_direction(MOVE_PLAYER_LEFT);
 		}
 		return true;
 	}

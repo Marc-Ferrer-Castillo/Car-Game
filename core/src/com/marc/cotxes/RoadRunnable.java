@@ -5,7 +5,7 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
 // Runnable that moves roads according to speed and Delta Time
 public class RoadRunnable implements Runnable {
     // SCREEN DIMENSIONS
-    private int SCREEN_WIDTH = Main.SCREEN_WIDTH;
+    private int SCREEN_HEIGHT = Main.SCREEN_HEIGHT;
 
     // Game Speed
     private float speed;
@@ -18,7 +18,7 @@ public class RoadRunnable implements Runnable {
     RoadRunnable(Sprite road1, Sprite road2) {
         this.road1 = road1;
         this.road2 = road2;
-        backPosition = -SCREEN_WIDTH - 5;
+        backPosition = SCREEN_HEIGHT;
     }
 
     public void setSpeed(float speed) {
@@ -27,7 +27,7 @@ public class RoadRunnable implements Runnable {
 
     public void run(){
         // Second road position will be before the first one
-        road2.setX(backPosition);
+        road2.setY(backPosition);
 
         while (true){
             move(road1);
@@ -45,14 +45,14 @@ public class RoadRunnable implements Runnable {
         // Road position
         float position = 0;
 
-        // Once the road reaches the end of the screen -5
-        if (road.getX() >= SCREEN_WIDTH - 5){
+        // Once the road reaches the end of the screen
+        if (road.getY() + road.getHeight() <= 5){
             // Goes back to initial position
             position = backPosition;
         }else{
             // Moves the road to the new position
-            position = road.getX() + speed;
+            position = road.getY() - speed;
         }
-        road.setX(position);
+        road.setY(position);
     }
 }

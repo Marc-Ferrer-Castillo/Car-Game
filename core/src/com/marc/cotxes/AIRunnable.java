@@ -14,10 +14,8 @@ public class AIRunnable implements Runnable {
     private Sprite AI_Sprite;
 
     // Positions for the AI vehicles
-    int firstLine = (SCREEN_HEIGHT / 5) + SCREEN_HEIGHT / 40;
-    private int[] possible_Spawn_Positions = {firstLine, firstLine + firstLine / 2 + SCREEN_HEIGHT / 28, firstLine * 2 + SCREEN_HEIGHT / 12, firstLine + SCREEN_HEIGHT / 3 - SCREEN_HEIGHT / 35, firstLine * 3 };
-
-
+    int firstLine = (SCREEN_WIDTH / 5) + SCREEN_WIDTH/ 40;
+    private int[] possible_Spawn_Positions = {firstLine, firstLine + firstLine / 2 + SCREEN_WIDTH / 28, firstLine * 2 + SCREEN_WIDTH / 12, firstLine + SCREEN_WIDTH/ 3 - SCREEN_WIDTH/ 35, firstLine * 3 };
 
 
 
@@ -35,7 +33,7 @@ public class AIRunnable implements Runnable {
         pickLane();
 
         // Until end of screen
-        while (AI_Sprite.getX() <= SCREEN_WIDTH){
+        while (AI_Sprite.getY() >= 0){
             // Moves forward
             moveAIForward();
             // Check for collisions
@@ -68,15 +66,15 @@ public class AIRunnable implements Runnable {
 
     // Positions the car in a lane
     private void pickLane() {
-        AI_Sprite.setX(-AI_Sprite.getWidth());
+        AI_Sprite.setY(SCREEN_HEIGHT);
         int random = new Random().nextInt(possible_Spawn_Positions.length);
-        AI_Sprite.setY(possible_Spawn_Positions[random]);
+        AI_Sprite.setX(possible_Spawn_Positions[random]);
     }
 
     // Moves cars forward
     private void moveAIForward() {
         // Road position
-        float position = AI_Sprite.getX() + Main.getSpeed() + 0.5f;
-        AI_Sprite.setX(position);
+        float position = AI_Sprite.getY() - Main.getSpeed() - 0.5f;
+        AI_Sprite.setY(position);
     }
 }

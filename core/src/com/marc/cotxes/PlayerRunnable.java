@@ -8,13 +8,15 @@ public class PlayerRunnable implements Runnable {
     // MAX PLAYER LIVES
     private static final byte MAX_LIVES = 3;
     // PLAYER MOVEMENT
-    private final boolean MOVE_PLAYER_LEFT = true;
-    private final boolean MOVE_PLAYER_RIGHT = false;
-    // ROAD LIMITS THAT CARS CAN'T SURPASS
-    static final int RIGHT_LIMIT = 340;
-    static final int LEFT_LIMIT = 235;
+    private final boolean MOVE_PLAYER_LEFT = false;
+    private final boolean MOVE_PLAYER_RIGHT = true;
     // SCREEN DIMENSIONS
-    private int SCREEN_HEIGHT;
+    private static int SCREEN_HEIGHT = Main.SCREEN_HEIGHT;
+    private static int SCREEN_WIDTH = Main.SCREEN_WIDTH;
+    // ROAD LIMITS THAT CARS CAN'T SURPASS
+    static final int RIGHT_LIMIT = SCREEN_WIDTH - SCREEN_WIDTH / 4 - SCREEN_WIDTH / 20;
+    static final int LEFT_LIMIT = SCREEN_WIDTH / 5;
+
 
     // Player alive
     private static boolean player_Alive = true;
@@ -28,8 +30,7 @@ public class PlayerRunnable implements Runnable {
     private boolean player_moving = false;
 
     // Constructor
-    PlayerRunnable(int SCREEN_HEIGHT, Sprite player_Sprite) {
-        this.SCREEN_HEIGHT = SCREEN_HEIGHT;
+    PlayerRunnable(Sprite player_Sprite) {
         this.player_Sprite = player_Sprite;
     }
 
@@ -72,20 +73,20 @@ public class PlayerRunnable implements Runnable {
             if (player_moving){
                 // Left movement
                 if (player_moving_direction == MOVE_PLAYER_LEFT){
-                    player_Sprite.setY(player_Sprite.getY() - 1);
+                    player_Sprite.setX(player_Sprite.getX() - 1);
                 }
                 // Right movement
                 else if(player_moving_direction == MOVE_PLAYER_RIGHT){
-                    player_Sprite.setY(player_Sprite.getY() + 1);
+                    player_Sprite.setX(player_Sprite.getX() + 1);
                 }
             }
             // If the player reaches max right side
-            if (player_Sprite.getY() > SCREEN_HEIGHT - RIGHT_LIMIT){
-                player_Sprite.setY(player_Sprite.getY() - 1);
+            if (player_Sprite.getX() >= RIGHT_LIMIT){
+                player_Sprite.setX(player_Sprite.getX() - 1);
             }
             // If the player reaches max left side
-            if ( player_Sprite.getY() < LEFT_LIMIT){
-                player_Sprite.setY(player_Sprite.getY() + 1);
+            if ( player_Sprite.getX() <= LEFT_LIMIT){
+                player_Sprite.setX(player_Sprite.getX() + 1);
             }
             // Thread sleep
             try{
