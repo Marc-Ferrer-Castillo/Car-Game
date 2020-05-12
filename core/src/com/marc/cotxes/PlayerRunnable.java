@@ -22,16 +22,17 @@ public class PlayerRunnable implements Runnable {
     private static boolean player_Alive = true;
     // Player lives
     private static byte lives = MAX_LIVES;
-    // Player sprite
-    private Sprite player_Sprite;
+    // Player sprites
+    private Sprite player_Sprite, lights_Sprite;
     // Player moving left or right
     private boolean player_moving_direction;
     // Player moving?
     private boolean player_moving = false;
 
     // Constructor
-    PlayerRunnable(Sprite player_Sprite) {
+    PlayerRunnable(Sprite player_Sprite, Sprite lights_Sprite) {
         this.player_Sprite = player_Sprite;
+        this.lights_Sprite = lights_Sprite;
     }
 
     // Called when the player collides with an AI
@@ -74,19 +75,23 @@ public class PlayerRunnable implements Runnable {
                 // Left movement
                 if (player_moving_direction == MOVE_PLAYER_LEFT){
                     player_Sprite.setX(player_Sprite.getX() - 1);
+                    lights_Sprite.setX(lights_Sprite.getX() - 1);
                 }
                 // Right movement
                 else if(player_moving_direction == MOVE_PLAYER_RIGHT){
                     player_Sprite.setX(player_Sprite.getX() + 1);
+                    lights_Sprite.setX(lights_Sprite.getX() + 1);
                 }
             }
             // If the player reaches max right side
             if (player_Sprite.getX() >= RIGHT_LIMIT){
                 player_Sprite.setX(player_Sprite.getX() - 1);
+                lights_Sprite.setX(lights_Sprite.getX() - 1);
             }
             // If the player reaches max left side
             if ( player_Sprite.getX() <= LEFT_LIMIT){
                 player_Sprite.setX(player_Sprite.getX() + 1);
+                lights_Sprite.setX(lights_Sprite.getX() + 1);
             }
             // Thread sleep
             try{

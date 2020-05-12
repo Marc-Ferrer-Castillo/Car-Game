@@ -33,7 +33,7 @@ public class AIRunnable implements Runnable {
         pickLane();
 
         // Until end of screen
-        while (AI_Sprite.getY() >= 0){
+        while (AI_Sprite.getY() + AI_Sprite.getHeight() >= 0){
             // Moves forward
             moveAIForward();
             // Check for collisions

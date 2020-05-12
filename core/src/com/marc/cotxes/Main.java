@@ -52,12 +52,12 @@ public class Main extends ApplicationAdapter implements Runnable, InputProcessor
 	// SpriteBatch
 	private SpriteBatch batch;
 	// Sprites
-	private static Sprite player_Sprite, instructions_Sprite;
+	private static Sprite player_Sprite, instructions_Sprite, lights_Sprite;
 	private static ArrayList<Sprite> road_Sprites;
 	private ArrayList<Sprite> AI_Sprites;
 	private static ArrayList<Sprite> heart_Sprites;
 	// Textures
-	private Texture dayRoad_Texture,  nighRoad_Texture;
+	private Texture dayRoad_Texture,  nighRoad_Texture, lights_Texture;
 	private FreeTypeFontGenerator generator;
 
 
@@ -65,7 +65,7 @@ public class Main extends ApplicationAdapter implements Runnable, InputProcessor
 	// Runnables
 	private RoadRunnable roadRunnable;
 	private static PlayerRunnable playerRunnable;
-
+	private boolean isDayTime = true;
 
 
 	// Speed Getter
@@ -181,14 +181,17 @@ public class Main extends ApplicationAdapter implements Runnable, InputProcessor
 	}
 	// Creates the player's car
 	private void createPlayer() {
-		// Texture
+		// Textures
 		Texture player_Texture = new Texture("player.png");
-		// Sprite
+		lights_Texture = new Texture("lights.png");
+		// Sprites
 		player_Sprite = new Sprite(player_Texture);
-		// Initial position
+		lights_Sprite = new Sprite(lights_Texture);
+		// Initial positions
 		player_Sprite.setPosition(SCREEN_CENTER_X, player_Sprite.getHeight() + (SCREEN_HEIGHT/20f));
+		lights_Sprite.setPosition(SCREEN_CENTER_X - SCREEN_WIDTH / 17f, player_Sprite.getY());
 		// Starts player movement
-		playerRunnable = new PlayerRunnable(player_Sprite);
+		playerRunnable = new PlayerRunnable(player_Sprite, lights_Sprite);
 		new Thread(playerRunnable).start();
 	}
 	// Creates the roads
@@ -260,6 +263,9 @@ public class Main extends ApplicationAdapter implements Runnable, InputProcessor
 	private void renderPlayer() {
 		if (game_started) {
 			player_Sprite.draw(batch);
+			if (!isDayTime){
+				lights_Sprite.draw(batch);
+			}
 		}
 	}
 
@@ -330,14 +336,20 @@ public class Main extends ApplicationAdapter implements Runnable, InputProcessor
 	}
 
 	private void changeLights() {
-		if (currentTime % 2 == 0 & changingTime != currentTime){
+		if (currentTime % 20 == 0 & changingTime != currentTime){
 
 			for (Sprite road: road_Sprites) {
+				// If its day
 				if (road.getTexture().equals(dayRoad_Texture)){
+					// Changes to night
 					road.setTexture(nighRoad_Texture);
+					isDayTime = false;
 				}
+				// If it's night
 				else{
+					// Changes to day
 					road.setTexture(dayRoad_Texture);
+					isDayTime = true;
 				}
 			}
 			changingTime = currentTime;
@@ -354,7 +366,7 @@ public class Main extends ApplicationAdapter implements Runnable, InputProcessor
 			playerRunnable.setPlayer_moving(false);
 			speed = MINIMUM_SPEED;
 			// Starts player movement
-			playerRunnable = new PlayerRunnable(player_Sprite);
+			playerRunnable = new PlayerRunnable(player_Sprite, lights_Sprite);
 			playerRunnable.restartLives();
 			PlayerRunnable.setPlayer_Alive(true);
 			new Thread(playerRunnable).start();
