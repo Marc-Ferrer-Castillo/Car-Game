@@ -14,8 +14,10 @@ public class AIRunnable implements Runnable {
     private Sprite AI_Sprite;
 
     // Positions for the AI vehicles
-    int firstLine = (SCREEN_HEIGHT / 5) + 40;
-    private int[] possible_Spawn_Positions = { firstLine, firstLine + firstLine / 2 + 40, firstLine * 2 + 90 ,firstLine * 3 - 10};
+    int firstLine = (SCREEN_HEIGHT / 5) + SCREEN_HEIGHT / 40;
+    private int[] possible_Spawn_Positions = {firstLine, firstLine + firstLine / 2 + SCREEN_HEIGHT / 28, firstLine * 2 + SCREEN_HEIGHT / 12, firstLine + SCREEN_HEIGHT / 3 - SCREEN_HEIGHT / 35, firstLine * 3 };
+
+
 
 
 

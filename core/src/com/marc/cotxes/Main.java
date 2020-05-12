@@ -66,6 +66,16 @@ public class Main extends ApplicationAdapter implements Runnable, InputProcessor
 
 
 
+	// Speed Getter
+	static float getSpeed() {
+		return speed;
+	}
+	// Player Getter
+	static Sprite getPlayer_Sprite() {
+		return player_Sprite;
+	}
+
+
 	@Override
 	public void create () {
 		// Screen size
@@ -150,7 +160,7 @@ public class Main extends ApplicationAdapter implements Runnable, InputProcessor
 		// Parameters
 		generator = new FreeTypeFontGenerator(Gdx.files.internal("pdark.ttf"));
 		FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
-		parameter.size = 80;
+		parameter.size = 150;
 		parameter.shadowColor = Color.BLACK;
 		parameter.shadowOffsetX = 3;
 		parameter.shadowOffsetY = 3;
@@ -202,10 +212,10 @@ public class Main extends ApplicationAdapter implements Runnable, InputProcessor
 		if (game_started){
 			currentTime = (System.currentTimeMillis() - startTime) / 1000;
 			// Speed increasing
-			if (currentTime % 10 == 0){
+			if (currentTime % 2 == 0){
 				// Prevents from increasing the speed more than once per second
 				if (incrementation_sec != currentTime){
-					speed += 0.1;
+					speed += 5 * Gdx.graphics.getDeltaTime();
 					incrementation_sec = (int) currentTime;
 				}
 			}
@@ -216,15 +226,7 @@ public class Main extends ApplicationAdapter implements Runnable, InputProcessor
 		}
 	}
 
-	// Speed Getter
-	static float getSpeed() {
-		return speed;
-	}
 
-	// Player Getter
-	static Sprite getPlayer_Sprite() {
-		return player_Sprite;
-	}
 
 	@Override
 	public void render () {
@@ -288,7 +290,7 @@ public class Main extends ApplicationAdapter implements Runnable, InputProcessor
 		if (game_Finished){
 			// Renders the score
 			score_Font.setColor(1,1,1,1);
-			score_Font.draw(batch, "YOUR SCORE IS\n" + currentTime * points, SCREEN_CENTER, SCREEN_HEIGHT / 2f + SCREEN_HEIGHT / 15f);
+			score_Font.draw(batch, "SCORE\n" + points + currentTime, SCREEN_CENTER, SCREEN_HEIGHT / 2f + SCREEN_HEIGHT /22f + SCREEN_HEIGHT / 15f);
 		}
 	}
 	@Override
