@@ -64,7 +64,6 @@ public class AIRunnable implements Runnable {
         }
     }
 
-
     // Positions the car in a lane
     private void pickLane() {
         AI_Sprite.setY(SCREEN_HEIGHT);
