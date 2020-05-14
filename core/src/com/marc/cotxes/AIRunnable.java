@@ -29,7 +29,7 @@ public class AIRunnable implements Runnable {
 
     @Override
     public void run() {
-        // Picks a position
+        // Picks a starting point
         pickLane();
 
         // Until end of screen
@@ -66,7 +66,7 @@ public class AIRunnable implements Runnable {
 
     // Positions the car in a lane
     private void pickLane() {
-        AI_Sprite.setY(SCREEN_HEIGHT);
+        AI_Sprite.setY(SCREEN_HEIGHT + 10);
         int random = new Random().nextInt(possible_Spawn_Positions.length);
         AI_Sprite.setX(possible_Spawn_Positions[random]);
     }
