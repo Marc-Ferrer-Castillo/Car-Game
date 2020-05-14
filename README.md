@@ -1,6 +1,6 @@
 # [Car Game](https://github.com/Marc-Ferrer-Castillo/Car-Game)
 
-Small car game for android devices made with libGDX library and Java.
+Car game for android devices made with libGDX library and Java.
 
 School Project [Centre d'Estudis Politècnics](http://www.cepnet.net/)
 May 2020
