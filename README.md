@@ -23,5 +23,3 @@ targetSdkVersion: 29
 ![](https://raw.githubusercontent.com/Marc-Ferrer-Castillo/Car-Game/master/Screenshots/screens.png)
 
 #
-
-![](https://raw.githubusercontent.com/Marc-Ferrer-Castillo/MultimediaApp/master/firma.png)
